@@ -1,0 +1,32 @@
+name: Trigger deploy (proto changed)
+
+# Un cambio en el proto afecta tanto al Manager como al Agent.
+# Se disparan ambos deploys para que ambas imágenes se reconstruyan.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  trigger-manager:
+    name: Rebuild Manager
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token:      ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+          repository: Selknam-Tech/BodokeBackupDeploy
+          event-type: manager-deploy
+          client-payload: |
+            {"sha": "${{ github.sha }}", "ref": "${{ github.ref }}", "reason": "proto updated"}
+
+  trigger-agent:
+    name: Rebuild Agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token:      ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+          repository: Selknam-Tech/BodokeBackupDeploy
+          event-type: agent-deploy
+          client-payload: |
+            {"sha": "${{ github.sha }}", "ref": "${{ github.ref }}", "reason": "proto updated"}
